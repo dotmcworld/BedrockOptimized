@@ -32,6 +32,69 @@ Write.restBuffer = ['native', (value, buffer, offset) => {
   value.copy(buffer, offset)
   return offset + value.length
 }]
+/**
+ * Length-prefixed array that tolerates an over-reported count while reading.
+ * Writing and sizing behave like a normal array.
+ */
+Read.maybeIncompleteArray = ['parametrizable', (compiler, { countType, type }) => {
+  return compiler.wrapCode(`
+  const { value: count, size: countSize } = ${compiler.callType(countType)}
+  if (count > 0xffffff && !ctx.noArraySizeCheck) throw new Error("array size is abnormally large, not reading: " + count)
+  const data = []
+  let size = countSize
+  for (let i = 0; i < count && offset + size < buffer.length; i++) {
+    try {
+      const elem = ${compiler.callType(type, 'offset + size')}
+      data.push(elem.value)
+      size += elem.size
+    } catch (error) {
+      if (error.name !== "PartialReadError") throw error
+      break
+    }
+  }
+  return { value: data, size }
+`.trim())
+}]
+Write.maybeIncompleteArray = ['parametrizable', (compiler, { countType, type }) => {
+  return compiler.wrapCode(`
+  offset = ${compiler.callType('value.length', countType)}
+  for (let i = 0; i < value.length; i++) {
+    offset = ${compiler.callType('value[i]', type)}
+  }
+  return offset
+`.trim())
+}]
+SizeOf.maybeIncompleteArray = ['parametrizable', (compiler, { countType, type }) => {
+  return compiler.wrapCode(`
+  let size = ${compiler.callType('value.length', countType)}
+  for (let i = 0; i < value.length; i++) {
+    size += ${compiler.callType('value[i]', type)}
+  }
+  return size
+`.trim())
+}]
+
+/**
+ * A trailing field that exists only if unread bytes remain.
+ */
+Read.optionalOnRemaining = ['parametrizable', (compiler, { type }) => {
+  return compiler.wrapCode(`
+  if (offset >= buffer.length) return { value: undefined, size: 0 }
+  return ${compiler.callType(type)}
+`.trim())
+}]
+Write.optionalOnRemaining = ['parametrizable', (compiler, { type }) => {
+  return compiler.wrapCode(`
+  if (value === undefined) return offset
+  return ${compiler.callType('value', type)}
+`.trim())
+}]
+SizeOf.optionalOnRemaining = ['parametrizable', (compiler, { type }) => {
+  return compiler.wrapCode(`
+  if (value === undefined) return 0
+  return ${compiler.callType('value', type)}
+`.trim())
+}]
 SizeOf.restBuffer = ['native', (value) => {
   return value.length
 }]
@@ -70,6 +133,27 @@ SizeOf.encapsulated = ['parametrizable', (compiler, { lengthType, type }) => {
     return (ctx.${lengthType})(payloadSize) + payloadSize
 `.trim())
 }]
+
+/**
+ * Big-endian packed ARGB color (gophertunnel's io.BEARGB).
+ * Wire layout is a big-endian int32 built as A | R<<8 | G<<16 | B<<24,
+ * which serializes as bytes [B, G, R, A]. Exposed as { r, g, b, a }.
+ */
+Read.beargb = ['native', (buffer, offset) => {
+  const b = buffer.readUInt8(offset)
+  const g = buffer.readUInt8(offset + 1)
+  const r = buffer.readUInt8(offset + 2)
+  const a = buffer.readUInt8(offset + 3)
+  return { value: { r, g, b, a }, size: 4 }
+}]
+Write.beargb = ['native', (value, buffer, offset) => {
+  buffer.writeUInt8(value.b & 0xFF, offset)
+  buffer.writeUInt8(value.g & 0xFF, offset + 1)
+  buffer.writeUInt8(value.r & 0xFF, offset + 2)
+  buffer.writeUInt8(value.a & 0xFF, offset + 3)
+  return offset + 4
+}]
+SizeOf.beargb = ['native', 4]
 
 /**
  * Read NBT until end of buffer or \0
