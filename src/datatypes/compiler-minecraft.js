@@ -32,47 +32,6 @@ Write.restBuffer = ['native', (value, buffer, offset) => {
   value.copy(buffer, offset)
   return offset + value.length
 }]
-/**
- * Length-prefixed array that tolerates an over-reported count while reading.
- * Writing and sizing behave like a normal array.
- */
-Read.maybeIncompleteArray = ['parametrizable', (compiler, { countType, type }) => {
-  return compiler.wrapCode(`
-  const { value: count, size: countSize } = ${compiler.callType(countType)}
-  if (count > 0xffffff && !ctx.noArraySizeCheck) throw new Error("array size is abnormally large, not reading: " + count)
-  const data = []
-  let size = countSize
-  for (let i = 0; i < count && offset + size < buffer.length; i++) {
-    try {
-      const elem = ${compiler.callType(type, 'offset + size')}
-      data.push(elem.value)
-      size += elem.size
-    } catch (error) {
-      if (error.name !== "PartialReadError") throw error
-      break
-    }
-  }
-  return { value: data, size }
-`.trim())
-}]
-Write.maybeIncompleteArray = ['parametrizable', (compiler, { countType, type }) => {
-  return compiler.wrapCode(`
-  offset = ${compiler.callType('value.length', countType)}
-  for (let i = 0; i < value.length; i++) {
-    offset = ${compiler.callType('value[i]', type)}
-  }
-  return offset
-`.trim())
-}]
-SizeOf.maybeIncompleteArray = ['parametrizable', (compiler, { countType, type }) => {
-  return compiler.wrapCode(`
-  let size = ${compiler.callType('value.length', countType)}
-  for (let i = 0; i < value.length; i++) {
-    size += ${compiler.callType('value[i]', type)}
-  }
-  return size
-`.trim())
-}]
 
 /**
  * A trailing field that exists only if unread bytes remain.
