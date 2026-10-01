@@ -72,6 +72,27 @@ SizeOf.encapsulated = ['parametrizable', (compiler, { lengthType, type }) => {
 }]
 
 /**
+ * Big-endian packed ARGB color (gophertunnel's io.BEARGB).
+ * Wire layout is a big-endian int32 built as A | R<<8 | G<<16 | B<<24,
+ * which serializes as bytes [B, G, R, A]. Exposed as { r, g, b, a }.
+ */
+Read.beargb = ['native', (buffer, offset) => {
+  const b = buffer.readUInt8(offset)
+  const g = buffer.readUInt8(offset + 1)
+  const r = buffer.readUInt8(offset + 2)
+  const a = buffer.readUInt8(offset + 3)
+  return { value: { r, g, b, a }, size: 4 }
+}]
+Write.beargb = ['native', (value, buffer, offset) => {
+  buffer.writeUInt8(value.b & 0xFF, offset)
+  buffer.writeUInt8(value.g & 0xFF, offset + 1)
+  buffer.writeUInt8(value.r & 0xFF, offset + 2)
+  buffer.writeUInt8(value.a & 0xFF, offset + 3)
+  return offset + 4
+}]
+SizeOf.beargb = ['native', 4]
+
+/**
  * Read NBT until end of buffer or \0
  */
 Read.nbtLoop = ['context', (buffer, offset) => {

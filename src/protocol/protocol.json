@@ -46,6 +46,7 @@
     "varint64": "native",
     "zigzag32": "native",
     "zigzag64": "native",
+    "beargb": "native",
     "uuid": "native",
     "byterot": "native",
     "bitflags": "native",
@@ -508,75 +509,58 @@
       [
         {
           "name": "network_id",
-          "type": "zigzag32"
+          "type": "li16"
         },
         {
-          "anon": true,
+          "name": "count",
+          "type": "lu16"
+        },
+        {
+          "name": "metadata",
+          "type": "varint"
+        },
+        {
+          "name": "has_stack_id",
+          "type": "bool"
+        },
+        {
+          "name": "stack_id",
+          "type": [
+            "switch",
+            {
+              "compareTo": "has_stack_id",
+              "fields": {
+                "true": "zigzag32"
+              },
+              "default": "void"
+            }
+          ]
+        },
+        {
+          "name": "block_runtime_id",
+          "type": "varint"
+        },
+        {
+          "name": "extra",
           "type": [
             "switch",
             {
               "compareTo": "network_id",
               "fields": {
-                "0": "void"
-              },
-              "default": [
-                "container",
-                [
+                "/ShieldItemID": [
+                  "encapsulated",
                   {
-                    "name": "count",
-                    "type": "lu16"
-                  },
-                  {
-                    "name": "metadata",
-                    "type": "varint"
-                  },
-                  {
-                    "name": "has_stack_id",
-                    "type": "bool"
-                  },
-                  {
-                    "name": "stack_id",
-                    "type": [
-                      "switch",
-                      {
-                        "compareTo": "has_stack_id",
-                        "fields": {
-                          "true": "zigzag32"
-                        },
-                        "default": "void"
-                      }
-                    ]
-                  },
-                  {
-                    "name": "block_runtime_id",
-                    "type": "varint"
-                  },
-                  {
-                    "name": "extra",
-                    "type": [
-                      "switch",
-                      {
-                        "compareTo": "network_id",
-                        "fields": {
-                          "/ShieldItemID": [
-                            "encapsulated",
-                            {
-                              "lengthType": "varint",
-                              "type": "ItemExtraDataWithBlockingTick"
-                            }
-                          ]
-                        },
-                        "default": [
-                          "encapsulated",
-                          {
-                            "lengthType": "varint",
-                            "type": "ItemExtraDataWithoutBlockingTick"
-                          }
-                        ]
-                      }
-                    ]
+                    "lengthType": "varint",
+                    "type": "ItemExtraDataWithBlockingTick"
                   }
                 ]
+              },
+              "default": [
+                "encapsulated",
+                {
+                  "lengthType": "varint",
+                  "type": "ItemExtraDataWithoutBlockingTick"
+                }
               ]
             }
           ]
@@ -683,7 +667,7 @@
           "type": "lf32"
         },
         {
-          "name": "y",
+          "name": "z",
           "type": "lf32"
         }
       ]
@@ -732,19 +716,6 @@
           ]
         }
       ]
-    ],
-    "HeightMap": [
-      "array",
-      {
-        "count": 16,
-        "type": [
-          "array",
-          {
-            "countType": "varint",
-            "type": "i8"
-          }
-        ]
-      }
     ],
     "MetadataDictionary": [
       "array",
@@ -2194,7 +2165,7 @@
         },
         {
           "name": "skin_color",
-          "type": "li32"
+          "type": "i32"
         },
         {
           "name": "personal_pieces",
@@ -2249,7 +2220,7 @@
                       "array",
                       {
                         "count": 4,
-                        "type": "li32"
+                        "type": "i32"
                       }
                     ]
                   }
@@ -2288,101 +2259,102 @@
         }
       ]
     ],
-    "PlayerRecords": [
+    "PlayerRecord": [
+      "container",
+      [
+        {
+          "name": "type",
+          "type": [
+            "mapper",
+            {
+              "type": "varint",
+              "mappings": {
+                "0": "remove",
+                "1": "add"
+              }
+            }
+          ]
+        },
+        {
+          "name": "legacy_type",
+          "type": "u8"
+        },
+        {
+          "anon": true,
+          "type": [
+            "switch",
+            {
+              "compareTo": "type",
+              "fields": {
+                "add": [
+                  "container",
+                  [
+                    {
+                      "name": "uuid",
+                      "type": "uuid"
+                    },
+                    {
+                      "name": "entity_unique_id",
+                      "type": "zigzag64"
+                    },
+                    {
+                      "name": "username",
+                      "type": "string"
+                    },
+                    {
+                      "name": "xbox_user_id",
+                      "type": "string"
+                    },
+                    {
+                      "name": "platform_chat_id",
+                      "type": "string"
+                    },
+                    {
+                      "name": "build_platform",
+                      "type": "li32"
+                    },
+                    {
+                      "name": "skin_data",
+                      "type": "Skin"
+                    },
+                    {
+                      "name": "is_teacher",
+                      "type": "bool"
+                    },
+                    {
+                      "name": "is_host",
+                      "type": "bool"
+                    },
+                    {
+                      "name": "is_subclient",
+                      "type": "bool"
+                    },
+                    {
+                      "name": "player_color",
+                      "type": "i32"
+                    }
+                  ]
+                ],
+                "remove": [
+                  "container",
+                  [
+                    {
+                      "name": "uuid",
+                      "type": "uuid"
+                    }
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    ],
+   "PlayerRecords": [
       "array",
       {
         "countType": "varint",
-        "type": [
-          "container",
-          [
-            {
-              "name": "type",
-              "type": [
-                "mapper",
-                {
-                  "type": "varint",
-                  "mappings": {
-                    "0": "remove",
-                    "1": "add"
-                  }
-                }
-              ]
-            },
-            {
-              "name": "legacy_type",
-              "type": "u8"
-            },
-            {
-              "anon": true,
-              "type": [
-                "switch",
-                {
-                  "compareTo": "type",
-                  "fields": {
-                    "add": [
-                      "container",
-                      [
-                        {
-                          "name": "uuid",
-                          "type": "uuid"
-                        },
-                        {
-                          "name": "entity_unique_id",
-                          "type": "zigzag64"
-                        },
-                        {
-                          "name": "username",
-                          "type": "string"
-                        },
-                        {
-                          "name": "xbox_user_id",
-                          "type": "string"
-                        },
-                        {
-                          "name": "platform_chat_id",
-                          "type": "string"
-                        },
-                        {
-                          "name": "build_platform",
-                          "type": "DeviceOS"
-                        },
-                        {
-                          "name": "skin_data",
-                          "type": "Skin"
-                        },
-                        {
-                          "name": "is_teacher",
-                          "type": "bool"
-                        },
-                        {
-                          "name": "is_host",
-                          "type": "bool"
-                        },
-                        {
-                          "name": "is_subclient",
-                          "type": "bool"
-                        },
-                        {
-                          "name": "player_color",
-                          "type": "li32"
-                        }
-                      ]
-                    ],
-                    "remove": [
-                      "container",
-                      [
-                        {
-                          "name": "uuid",
-                          "type": "uuid"
-                        }
-                      ]
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
-        ]
+        "type": "PlayerRecord"
       }
     ],
     "Enchant": [
@@ -3020,10 +2992,6 @@
               "type": "zigzag32"
             },
             {
-              "name": "containers_presence",
-              "type": "bool"
-            },
-            {
               "name": "containers",
               "type": [
                 "option",
@@ -3058,10 +3026,6 @@
                                   {
                                     "name": "count",
                                     "type": "u8"
-                                  },
-                                  {
-                                    "name": "item_stack_id_presence",
-                                    "type": "bool"
                                   },
                                   {
                                     "name": "item_stack_id",
@@ -4431,7 +4395,7 @@
           "9": "Dedicated",
           "10": "TVOS",
           "11": "Orbis",
-          "12": "Nintendo",
+          "12": "NintendoSwitch",
           "13": "Xbox",
           "14": "WindowsPhone",
           "15": "Linux"
@@ -5341,21 +5305,24 @@
           "119": "realms_timeline_required",
           "120": "guest_withough_host",
           "121": "failed_to_join_experience",
-          "122": "host_signed_out",
-          "123": "script_watchdog_exception",
-          "124": "script_memory_limit_exceeded",
-          "125": "storage_low_during_gameplay",
-          "126": "storage_full_during_gameplay",
-          "127": "level_storage_corruption",
-          "128": "edition_mismatch_vanilla_to_edu",
-          "129": "edition_mismatch_edu_to_vanilla",
-          "130": "editor_mismatch_editor_to_vanilla",
-          "131": "editor_mismatch_vanilla_to_editor",
-          "132": "deny_listed",
-          "133": "nonce_missing",
-          "134": "nonce_not_found",
-          "135": "nonce_expired",
-          "136": "nonce_not_valid",
+          "122": "nethernet_data_channel_closed",
+          "123": "discovery_environment_mismatch",
+          "124": "host_without_keys",
+          "125": "host_signed_out",
+          "126": "script_watchdog_exception",
+          "127": "script_memory_limit_exceeded",
+          "128": "storage_low_during_gameplay",
+          "129": "storage_full_during_gameplay",
+          "130": "level_storage_corruption",
+          "131": "edition_mismatch_vanilla_to_edu",
+          "132": "edition_mismatch_edu_to_vanilla",
+          "133": "editor_mismatch_editor_to_vanilla",
+          "134": "editor_mismatch_vanilla_to_editor",
+          "135": "deny_listed",
+          "136": "nonce_missing",
+          "137": "nonce_not_found",
+          "138": "nonce_expired",
+          "139": "nonce_not_valid",
           "140": "host_disconnected",
           "141": "editor_join_intent_policy_failure",
           "142": "nethernet_identity_not_allowed",
@@ -6810,19 +6777,6 @@
         }
       ]
     ],
-    "NoiseAlignment": [
-      "container",
-      [
-        {
-          "name": "type",
-          "type": "u8"
-        },
-        {
-          "name": "value",
-          "type": "lu32"
-        }
-      ]
-    ],
     "EnvironmentAttributeData": [
       "container",
       [
@@ -6867,10 +6821,6 @@
         {
           "name": "noise_transition",
           "type": "bool"
-        },
-        {
-          "name": "noise_alignment",
-          "type": "NoiseAlignment"
         }
       ]
     ],
@@ -7163,13 +7113,6 @@
           ]
         },
         {
-          "name": "line_gap_height",
-          "type": [
-            "option",
-            "lf32"
-          ]
-        },
-        {
           "name": "depth_test",
           "type": [
             "option",
@@ -7219,6 +7162,36 @@
         {
           "name": "party_leader",
           "type": "bool"
+        }
+      ]
+    ],
+    "HeightMap": [
+      "array",
+      {
+        "count": 16,
+        "type": [
+          "array",
+          {
+            "countType": "varint",
+            "type": "i8"
+          }
+        ]
+      }
+    ],
+    "FurnaceOptions": [
+      "container",
+      [
+        {
+          "name": "left_furnace_tab",
+          "type": "zigzag32"
+        },
+        {
+          "name": "filtering",
+          "type": "bool"
+        },
+        {
+          "name": "layout",
+          "type": "zigzag32"
         }
       ]
     ],
@@ -7477,7 +7450,7 @@
                 "349": "send_party_destination_cookie",
                 "350": "party_destination_cookie_response",
                 "351": "set_player_furnace_options",
-                "352": "packet_record_started"
+                "352": "record_started"
               }
             }
           ]
@@ -11918,7 +11891,7 @@
                     "type": [
                       "mapper",
                       {
-                        "type": "u8",
+                        "type": "varint",
                         "mappings": {
                           "0": "remove",
                           "1": "player",
@@ -11927,6 +11900,10 @@
                         }
                       }
                     ]
+                  },
+                  {
+                    "name": "entry_type_name",
+                    "type": "string"
                   },
                   {
                     "name": "scoreboard_id",
@@ -12888,8 +12865,12 @@
       "container",
       [
         {
-          "name": "rotation",
-          "type": "vec2f"
+          "name": "pitch",
+          "type": "lf32"
+        },
+        {
+          "name": "yaw",
+          "type": "lf32"
         },
         {
           "name": "position",
@@ -12909,80 +12890,7 @@
             "array",
             {
               "countType": "varint",
-              "type": [
-                "mapper",
-                {
-                  "type": "varint",
-                  "mappings": {
-                    "0": "ascend",
-                    "1": "descend",
-                    "2": "north_jump",
-                    "3": "jump_down",
-                    "4": "sprint_down",
-                    "5": "change_height",
-                    "6": "jumping",
-                    "7": "auto_jumping_in_water",
-                    "8": "sneaking",
-                    "9": "sneak_down",
-                    "10": "up",
-                    "11": "down",
-                    "12": "left",
-                    "13": "right",
-                    "14": "up_left",
-                    "15": "up_right",
-                    "16": "want_up",
-                    "17": "want_down",
-                    "18": "want_down_slow",
-                    "19": "want_up_slow",
-                    "20": "sprinting",
-                    "21": "ascend_block",
-                    "22": "descend_block",
-                    "23": "sneak_toggle_down",
-                    "24": "persist_sneak",
-                    "25": "start_sprinting",
-                    "26": "stop_sprinting",
-                    "27": "start_sneaking",
-                    "28": "stop_sneaking",
-                    "29": "start_swimming",
-                    "30": "stop_swimming",
-                    "31": "start_jumping",
-                    "32": "start_gliding",
-                    "33": "stop_gliding",
-                    "34": "item_interact",
-                    "35": "block_action",
-                    "36": "item_stack_request",
-                    "37": "handled_teleport",
-                    "38": "emoting",
-                    "39": "missed_swing",
-                    "40": "start_crawling",
-                    "41": "stop_crawling",
-                    "42": "start_flying",
-                    "43": "stop_flying",
-                    "44": "received_server_data",
-                    "45": "client_predicted_vehicle",
-                    "46": "paddling_left",
-                    "47": "paddling_right",
-                    "48": "block_breaking_delay_enabled",
-                    "49": "horizontal_collision",
-                    "50": "vertical_collision",
-                    "51": "down_left",
-                    "52": "down_right",
-                    "53": "start_using_item",
-                    "54": "camera_relative_movement_enabled",
-                    "55": "rot_controlled_by_move_direction",
-                    "56": "start_spin_attack",
-                    "57": "stop_spin_attack",
-                    "58": "hotbar_only_touch",
-                    "59": "jump_released_raw",
-                    "60": "jump_pressed_raw",
-                    "61": "jump_current_raw",
-                    "62": "sneak_released_raw",
-                    "63": "sneak_pressed_raw",
-                    "64": "sneak_current_raw",
-                    "65": "internal_update"
-                  }
-                }
-              ]
+              "type": "InputData"
             }
           ]
         },
@@ -14121,7 +14029,7 @@
                     "type": "string"
                   },
                   {
-                    "name": "min_height",
+                    "name": "min_y",
                     "type": "zigzag32"
                   },
                   {
@@ -15873,7 +15781,11 @@
                             "2": "sphere",
                             "3": "circle",
                             "4": "text",
-                            "5": "arrow"
+                            "5": "arrow",
+                            "6": "cylinder",
+                            "7": "pyramid",
+                            "8": "ellipsoid",
+                            "9": "cone"
                           }
                         }
                       ]
@@ -15908,52 +15820,231 @@
                     ]
                   },
                   {
+                    "name": "max_render_distance",
+                    "type": [
+                      "option",
+                      "lf32"
+                    ]
+                  },
+                  {
                     "name": "color",
                     "type": [
                       "option",
-                      "li32"
+                      "beargb"
                     ]
                   },
                   {
-                    "name": "text",
+                    "name": "dimension_id",
                     "type": [
                       "option",
-                      "string"
+                      "zigzag32"
                     ]
                   },
                   {
-                    "name": "box_bound",
+                    "name": "attached_to_entity_id",
                     "type": [
                       "option",
-                      "vec3f"
+                      "zigzag64"
                     ]
                   },
                   {
-                    "name": "line_end_location",
+                    "name": "shape_data_type",
                     "type": [
-                      "option",
-                      "vec3f"
+                      "mapper",
+                      {
+                        "type": "varint",
+                        "mappings": {
+                          "0": "last",
+                          "1": "arrow",
+                          "2": "text",
+                          "3": "box",
+                          "4": "line",
+                          "5": "sphere",
+                          "6": "cylinder",
+                          "7": "pyramid",
+                          "8": "ellipsoid",
+                          "9": "cone"
+                        }
+                      }
                     ]
                   },
                   {
-                    "name": "arrow_head_length",
+                    "name": "shape_data",
                     "type": [
-                      "option",
-                      "lf32"
-                    ]
-                  },
-                  {
-                    "name": "arrow_head_radius",
-                    "type": [
-                      "option",
-                      "lf32"
-                    ]
-                  },
-                  {
-                    "name": "segment_count",
-                    "type": [
-                      "option",
-                      "u8"
+                      "switch",
+                      {
+                        "compareTo": "shape_data_type",
+                        "fields": {
+                          "last": "void",
+                          "arrow": [
+                            "container",
+                            [
+                              {
+                                "name": "arrow_end_location",
+                                "type": [
+                                  "option",
+                                  "vec3f"
+                                ]
+                              },
+                              {
+                                "name": "arrow_head_length",
+                                "type": [
+                                  "option",
+                                  "lf32"
+                                ]
+                              },
+                              {
+                                "name": "arrow_head_radius",
+                                "type": [
+                                  "option",
+                                  "lf32"
+                                ]
+                              },
+                              {
+                                "name": "segments",
+                                "type": [
+                                  "option",
+                                  "u8"
+                                ]
+                              }
+                            ]
+                          ],
+                          "text": [
+                            "container",
+                            [
+                              {
+                                "name": "text",
+                                "type": "string"
+                              },
+                              {
+                                "name": "use_rotation",
+                                "type": "bool"
+                              },
+                              {
+                                "name": "background_color",
+                                "type": [
+                                  "option",
+                                  "beargb"
+                                ]
+                              },
+                              {
+                                "name": "line_gap_height",
+                                "type": "lf32"
+                              },
+                              {
+                                "name": "depth_test",
+                                "type": "bool"
+                              },
+                              {
+                                "name": "show_backface",
+                                "type": "bool"
+                              },
+                              {
+                                "name": "show_backface_text",
+                                "type": "bool"
+                              }
+                            ]
+                          ],
+                          "box": [
+                            "container",
+                            [
+                              {
+                                "name": "box_bound",
+                                "type": "vec3f"
+                              }
+                            ]
+                          ],
+                          "line": [
+                            "container",
+                            [
+                              {
+                                "name": "line_end_location",
+                                "type": "vec3f"
+                              }
+                            ]
+                          ],
+                          "sphere": [
+                            "container",
+                            [
+                              {
+                                "name": "segments",
+                                "type": "u8"
+                              }
+                            ]
+                          ],
+                          "cylinder": [
+                            "container",
+                            [
+                              {
+                                "name": "radius_x",
+                                "type": "vec2f"
+                              },
+                              {
+                                "name": "radius_z",
+                                "type": "vec2f"
+                              },
+                              {
+                                "name": "height",
+                                "type": "lf32"
+                              },
+                              {
+                                "name": "num_segments",
+                                "type": "u8"
+                              }
+                            ]
+                          ],
+                          "pyramid": [
+                            "container",
+                            [
+                              {
+                                "name": "width",
+                                "type": "lf32"
+                              },
+                              {
+                                "name": "depth",
+                                "type": [
+                                  "option",
+                                  "lf32"
+                                ]
+                              },
+                              {
+                                "name": "height",
+                                "type": "lf32"
+                              }
+                            ]
+                          ],
+                          "ellipsoid": [
+                            "container",
+                            [
+                              {
+                                "name": "radii",
+                                "type": "vec3f"
+                              },
+                              {
+                                "name": "segments_per_axis",
+                                "type": "u8"
+                              }
+                            ]
+                          ],
+                          "cone": [
+                            "container",
+                            [
+                              {
+                                "name": "radii",
+                                "type": "vec2f"
+                              },
+                              {
+                                "name": "height",
+                                "type": "lf32"
+                              },
+                              {
+                                "name": "num_segments",
+                                "type": "u8"
+                              }
+                            ]
+                          ]
+                        }
+                      }
                     ]
                   }
                 ]
@@ -15988,7 +16079,8 @@
                     "mappings": {
                       "0": "float",
                       "1": "bool",
-                      "2": "string"
+                      "2": "string",
+                      "3": "string_list"
                     }
                   }
                 ]
@@ -16003,7 +16095,7 @@
                       "float": "lf32",
                       "bool": "bool",
                       "string": "string",
-                      "array": [
+                      "string_list": [
                         "array",
                         {
                           "countType": "varint",
@@ -16733,27 +16825,22 @@
       [
         {
           "name": "furnace_type",
-          "type": "u8"
+          "type": [
+            "mapper",
+            {
+              "type": "u8",
+              "mappings": {
+                "0": "none",
+                "1": "furnace",
+                "2": "blast_furnace",
+                "3": "smoker"
+              }
+            }
+          ]
         },
         {
           "name": "furnace_options",
-          "type": [
-            "container",
-            [
-              {
-                "name": "left_furnace_tab",
-                "type": "varint"
-              },
-              {
-                "name": "filtering",
-                "type": "bool"
-              },
-              {
-                "name": "layout",
-                "type": "varint"
-              }
-            ]
-          ]
+          "type": "FurnaceOptions"
         }
       ]
     ],
@@ -16761,11 +16848,11 @@
       "container",
       [
         {
-          "name": "block_position",
+          "name": "position",
           "type": "BlockCoordinates"
         },
         {
-          "name": "server_sound_handle",
+          "name": "handle",
           "type": "lu64"
         }
       ]
