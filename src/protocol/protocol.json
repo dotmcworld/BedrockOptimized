@@ -52,8 +52,6 @@
     "bitflags": "native",
     "restBuffer": "native",
     "encapsulated": "native",
-    "maybeIncompleteArray": "native",
-    "optionalOnRemaining": "native",
     "nbt": "native",
     "lnbt": "native",
     "nbtLoop": "native",
@@ -8637,12 +8635,7 @@
         },
         {
           "name": "device_os",
-          "type": [
-            "optionalOnRemaining",
-            {
-              "type": "DeviceOS"
-            }
-          ]
+          "type": "DeviceOS"
         }
       ]
     ],
