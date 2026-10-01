@@ -32,28 +32,6 @@ Write.restBuffer = ['native', (value, buffer, offset) => {
   value.copy(buffer, offset)
   return offset + value.length
 }]
-
-/**
- * A trailing field that exists only if unread bytes remain.
- */
-Read.optionalOnRemaining = ['parametrizable', (compiler, { type }) => {
-  return compiler.wrapCode(`
-  if (offset >= buffer.length) return { value: undefined, size: 0 }
-  return ${compiler.callType(type)}
-`.trim())
-}]
-Write.optionalOnRemaining = ['parametrizable', (compiler, { type }) => {
-  return compiler.wrapCode(`
-  if (value === undefined) return offset
-  return ${compiler.callType('value', type)}
-`.trim())
-}]
-SizeOf.optionalOnRemaining = ['parametrizable', (compiler, { type }) => {
-  return compiler.wrapCode(`
-  if (value === undefined) return 0
-  return ${compiler.callType('value', type)}
-`.trim())
-}]
 SizeOf.restBuffer = ['native', (value) => {
   return value.length
 }]
