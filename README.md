@@ -18,7 +18,11 @@ The encryption optimization removes a plaintext buffer allocation and copy. Its 
 
 Derived from [BedrockX](https://github.com/thejfkvis/BedrockX) by thejfkvis, based on [bedrock-protocol](https://github.com/PrismarineJS/bedrock-protocol) by PrismarineJS. The upstream baseline is commit `2b947d2508a07c9efdf66e3f19c22b644c8d30a5` (version 1.4.6).
 
-Distributed under the MIT license. See [LICENSE](LICENSE) for the original copyright and license terms.
+Copyright (c) 2026 dotmcworld for BedrockOptimized modifications and additions. Original code remains credited to its upstream authors.
+
+Use, modification, and redistribution are allowed under the MIT license. Keep the required copyright and permission notices. Please credit the original authors and do not claim their work as your own creation; you can credit yourself for your own changes.
+
+See [LICENSE](LICENSE) for the terms and [NOTICE.md](NOTICE.md) for attribution details. The attribution request does not add restrictions to the MIT license.
 
 ## Repository history
 
