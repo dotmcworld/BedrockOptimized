@@ -27,3 +27,7 @@ See [LICENSE](LICENSE) for the terms and [NOTICE.md](NOTICE.md) for attribution 
 ## Repository history
 
 This repository starts with a fresh import maintained by dotmcworld. Its GitHub contributor list reflects this repository history, not sole authorship of the inherited source. Upstream authorship and license credits are preserved above and in LICENSE.
+
+## Extra documents
+
+See the [license and attribution guide](LEGAL.md). For fun, the [U.S. Constitution and all 27 amendments](docs/US-CONSTITUTION.md) are included separately from the software license.
