@@ -1,7 +1,7 @@
 import EventEmitter from 'events'
 import { Authflow, ServerDeviceCodeResponse, Titles } from 'prismarine-auth'
 
-declare module 'bedrockx' {
+declare module 'bedrock-optimized' {
     type Version = '1.26.50'
 
     export interface Options {

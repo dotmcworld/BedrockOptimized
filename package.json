@@ -1,7 +1,7 @@
 {
-  "name": "bedrockx",
+  "name": "bedrock-optimized",
   "version": "1.4.6",
-  "description": "",
+  "description": "A Minecraft Bedrock protocol library focused on efficient packet framing and reduced memory allocations.",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
