@@ -24,15 +24,17 @@ function createEncryptor(client, iv) {
   
   function process(chunk) {
     const compressedData = Zlib.deflateRawSync(chunk, { level: client.compressionLevel })
-    const buffer = Buffer.allocUnsafe(compressedData.length + 1)
+    const buffer = Buffer.allocUnsafe(compressedData.length + 1 + 8)
 
     buffer[0] = 0
     compressedData.copy(buffer, 1)
 
-    const checksum = computeCheckSum(buffer, client.sendCounter, client.secretKeyBytes)
+    const checksumOffset = compressedData.length + 1
+    const checksum = computeCheckSum(buffer.subarray(0, checksumOffset), client.sendCounter, client.secretKeyBytes)
+    checksum.copy(buffer, checksumOffset)
 
     client.sendCounter++
-    client.cipher.write(Buffer.concat([buffer, checksum]))
+    client.cipher.write(buffer)
   }
 
   client.cipher.on('data', client.onEncryptedPacket)

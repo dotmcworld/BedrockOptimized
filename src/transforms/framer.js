@@ -57,13 +57,24 @@ class Framer {
   }
 
   encode() {
-    const buf = Buffer.concat(this.packets)
-    const shouldCompress = buf.length > this.compressionThreshold
-    const header = this.batchHeader ? [this.batchHeader] : []
-
-    if (this.writeCompressor) header.push(shouldCompress ? this.compressionHeader : 255)
-
-    return Buffer.concat([Buffer.from(header), shouldCompress ? this.compress(buf) : buf])
+    let length = 0
+    for (const packet of this.packets) length += packet.length
+    const shouldCompress = length > this.compressionThreshold
+    const headerLength = (this.batchHeader ? 1 : 0) + (this.writeCompressor ? 1 : 0)
+    const compressPayload = shouldCompress && this.compressor !== 'none'
+    const compressed = compressPayload
+      ? this.compress(Buffer.concat(this.packets, length))
+      : null
+    const buffer = Buffer.allocUnsafe(headerLength + (compressPayload ? compressed.length : length))
+    let offset = 0
+    if (this.batchHeader) buffer[offset++] = this.batchHeader
+    if (this.writeCompressor) buffer[offset++] = shouldCompress ? this.compressionHeader : 255
+    if (compressPayload) {
+      compressed.copy(buffer, offset)
+    } else {
+      for (const packet of this.packets) offset += packet.copy(buffer, offset)
+    }
+    return buffer
   }
 
   addEncodedPacket(chunk) {
