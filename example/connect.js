@@ -1,0 +1,11 @@
+const { createClient } = require('../index')
+const createOptions = require('./options')
+
+const client = createClient(createOptions())
+client.on('session', () => console.log('Authenticated'))
+client.on('play_status', packet => console.log('Play status:', packet.status))
+client.on('start_game', () => console.log('Received world initialization'))
+client.on('kick', packet => console.log('Disconnected by server:', packet.message))
+client.on('close', () => console.log('Connection closed'))
+client.on('error', error => console.error(error.message))
+process.once('SIGINT', () => client.close('Example stopped'))
