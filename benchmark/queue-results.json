@@ -1,0 +1,51 @@
+{
+  "node": "v24.19.0",
+  "platform": "win32",
+  "arch": "x64",
+  "statistic": "median of seven alternating rounds",
+  "results": [
+    {
+      "workload": "1 x 50 KB fragments",
+      "iterations": 10000,
+      "originalMs": 1.72,
+      "optimizedMs": 2.09,
+      "speedup": 0.82
+    },
+    {
+      "workload": "8 x 50 KB fragments",
+      "iterations": 300,
+      "originalMs": 307.39,
+      "optimizedMs": 154.96,
+      "speedup": 1.98
+    },
+    {
+      "workload": "64 x 50 KB fragments",
+      "iterations": 20,
+      "originalMs": 732.32,
+      "optimizedMs": 65.8,
+      "speedup": 11.13
+    },
+    {
+      "workload": "256 x 50 KB fragments",
+      "iterations": 3,
+      "originalMs": 1550.45,
+      "optimizedMs": 29.45,
+      "speedup": 52.64
+    },
+    {
+      "workload": "drain 1000 relay chunks (including queue clone)",
+      "iterations": 20,
+      "originalMs": 1.96,
+      "optimizedMs": 0.76,
+      "speedup": 2.58
+    },
+    {
+      "workload": "drain 30000 relay chunks (including queue clone)",
+      "iterations": 20,
+      "originalMs": 1262.87,
+      "optimizedMs": 4.87,
+      "speedup": 259.26
+    }
+  ],
+  "sink": 0
+}

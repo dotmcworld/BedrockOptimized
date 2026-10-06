@@ -6,9 +6,11 @@ A Minecraft Bedrock protocol library focused on efficient packet framing and red
 
 Install dependencies with `npm install`. See [the example guide](example/README.md) for connection, packet-counting, and local relay examples.
 
-Packet framing and encryption optimizations, compatibility tests, and a reproducible benchmark are included. Run `npm test` and `npm run benchmark`.
+Packet framing and encryption optimizations, compatibility tests, and a reproducible benchmark are included. Run `npm test`, `npm run benchmark`, and `npm run benchmark:queues`.
 
 ## Performance
+
+NetherNet reassembles fragmented messages in a linear pass, sends fragments without temporary fragment arrays, and releases delivered queues. Relay chunk queues drain without repeatedly shifting their contents. See the [queue and fragmentation benchmark](benchmark/RESULTS.md) for measurements, controls, and limits.
 
 Local isolated benchmarks on Windows x64 with Node.js v24.19.0 measured 1.9–3.3x faster uncompressed batch encoding compared with the original implementation. These measurements exclude serialization, encryption, transport, network, and server processing; they do not establish an overall application speedup.
 

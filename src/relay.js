@@ -38,9 +38,9 @@ class RelayPlayer extends Player {
 
     flushChunks() {
         if (this.chunkSendCache.length === 0) return;
-        while (this.chunkSendCache.length > 0) {
-            this.sendBuffer(this.chunkSendCache.shift());
-        }
+        const chunks = this.chunkSendCache;
+        this.chunkSendCache = [];
+        for (const chunk of chunks) this.sendBuffer(chunk);
     }
 
     readUpstream(packet) {

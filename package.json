@@ -6,7 +6,8 @@
   "types": "index.d.ts",
   "scripts": {
     "test": "node --test test/*.test.js",
-    "benchmark": "node benchmark/framer.js"
+    "benchmark": "node benchmark/framer.js",
+    "benchmark:queues": "node benchmark/queues.js"
   },
   "keywords": [],
   "author": "thejfkvis",

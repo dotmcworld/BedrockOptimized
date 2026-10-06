@@ -17,7 +17,8 @@ class Connection {
     this.reliable = null
     this.unreliable = null
     this.promisedSegments = 0
-    this.buf = Buffer.allocUnsafe(0)
+    this.fragments = []
+    this.fragmentBytes = 0
     this.sendQueue = []
   }
 
@@ -46,12 +47,22 @@ class Connection {
     if (this.promisedSegments > 0 && this.promisedSegments - 1 !== segments) throw new Error(`Invalid promised segments: expected ${this.promisedSegments - 1}, got ${segments}`)
 
     this.promisedSegments = segments
-    this.buf = this.buf ? Buffer.concat([this.buf, data]) : data
+    if (segments > 0) {
+      // Retain owned bytes: callers may reuse their RTC input buffer.
+      this.fragments.push(Buffer.from(data))
+      this.fragmentBytes += data.length
+      return
+    }
 
-    if (this.promisedSegments > 0) return
-
-    this.nethernet.emit('encapsulated', this.buf)
-    this.buf = null;
+    if (this.fragments.length === 0) {
+      this.nethernet.emit('encapsulated', data)
+      return
+    }
+    this.fragments.push(data)
+    const message = Buffer.concat(this.fragments, this.fragmentBytes + data.length)
+    this.fragments.length = 0
+    this.fragmentBytes = 0
+    this.nethernet.emit('encapsulated', message)
   }
 
   send(data) {
@@ -69,16 +80,13 @@ class Connection {
 
   sendNow(data) {
     const segments = Math.ceil(data.length / MAX_MESSAGE_SIZE)
-    const buffers = Array(segments)
-
-    for (let i = 0; i < segments; i++) {
-      buffers[i] = data.slice(i * MAX_MESSAGE_SIZE, Math.min((i + 1) * MAX_MESSAGE_SIZE, data.length))
-    }
-
-    for (let i = 0; i < buffers.length; i++) {
-      const message = Buffer.allocUnsafe(1 + buffers[i].length)
+    if (segments > 256) throw new RangeError('NetherNet message exceeds the 256-fragment limit')
+    for (let i = 0, offset = 0; i < segments; i++) {
+      const length = Math.min(MAX_MESSAGE_SIZE, data.length - offset)
+      const message = Buffer.allocUnsafe(1 + length)
       message[0] = segments - 1 - i
-      buffers[i].copy(message, 1)
+      data.copy(message, 1, offset, offset + length)
+      offset += length
       this.reliable?.send(message)
     }
 
@@ -86,12 +94,16 @@ class Connection {
   }
 
   flushQueue() {
-    for (let i = 0; i < this.sendQueue.length; i++) {
-      this.sendNow(this.sendQueue[i])
-    }
+    const queued = this.sendQueue
+    this.sendQueue = []
+    for (const payload of queued) this.sendNow(payload)
   }
 
   close() {
+    this.sendQueue = []
+    this.fragments = []
+    this.fragmentBytes = 0
+    this.promisedSegments = 0
     this.reliable?.close()
     this.unreliable?.close()
     this.rtcConnection?.close()
